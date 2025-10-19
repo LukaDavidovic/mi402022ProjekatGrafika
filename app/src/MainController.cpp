@@ -1,8 +1,5 @@
-//
-// Created by matfrg on 10/18/25.
-//
 
-#include "MainController.hpp"
+#include <MainController.hpp>
 
 #include <engine/graphics/GraphicsController.hpp>
 #include <engine/graphics/OpenGL.hpp>
@@ -45,9 +42,9 @@ void MainController::draw_garage() {
     glm::vec3 camPos = glm::vec3(glm::inverse(view)[3]);
     shader->set_vec3("viewPos", camPos);
 
-    // Postavljanje pozicije i boje svetla u shader
-    shader->set_vec3("lightPos", glm::vec3(2.0f, 4.0f, 2.0f));
-    shader->set_vec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));// bela svetlost
+    // svetlo1
+    shader->set_vec3("lightPos1", glm::vec3(-2.0f, 4.0f, -5.0f));
+    shader->set_vec3("lightColor1", glm::vec3(1.0f, 1.0f, 1.0f));// belo
 
 
     // Kreiranje model matrice: pozicioniranje i skaliranje modela
@@ -56,7 +53,6 @@ void MainController::draw_garage() {
     model = glm::scale(model, glm::vec3(0.02f));
 
     shader->set_mat4("model", model);
-
 
     garage->draw(shader);
 
@@ -72,8 +68,8 @@ void MainController::update_camera() {
     if (platform->key(engine::platform::KeyId::KEY_S).is_down()) { camera->move_camera(engine::graphics::Camera::Movement::BACKWARD, dt); }
     if (platform->key(engine::platform::KeyId::KEY_A).is_down()) { camera->move_camera(engine::graphics::Camera::Movement::LEFT, dt); }
     if (platform->key(engine::platform::KeyId::KEY_D).is_down()) { camera->move_camera(engine::graphics::Camera::Movement::RIGHT, dt); }
-    if (platform->key(engine::platform::KeyId::KEY_N).is_down()) { camera->move_camera(engine::graphics::Camera::Movement::DOWN, dt); }
-    if (platform->key(engine::platform::KeyId::KEY_M).is_down()) { camera->move_camera(engine::graphics::Camera::Movement::UP, dt); }
+    if (platform->key(engine::platform::KeyId::KEY_X).is_down()) { camera->move_camera(engine::graphics::Camera::Movement::DOWN, dt); }
+    if (platform->key(engine::platform::KeyId::KEY_SPACE).is_down()) { camera->move_camera(engine::graphics::Camera::Movement::UP, dt); }
     if (platform->key(engine::platform::KeyId::KEY_L).is_down()) { camera->rotate_camera(engine::graphics::Camera::Movement::LEFT * 4, 0); }   //POMERANJE UDESNO
     if (platform->key(engine::platform::KeyId::KEY_K).is_down()) { camera->rotate_camera(-(engine::graphics::Camera::Movement::LEFT * 4), 0); }//POMERANJE ULEVO
 }

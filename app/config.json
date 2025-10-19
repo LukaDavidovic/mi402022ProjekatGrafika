@@ -6,6 +6,9 @@
     "models": {
       "garage": {
         "path": "garage/GARAGE_FLOOR.obj"
+      },
+      "mustang": {
+        "path": "mustang/mustang.obj"
       }
     }
   },
