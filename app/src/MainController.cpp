@@ -2,7 +2,7 @@
 // Created by matfrg on 10/18/25.
 //
 
-#include "../include/MainController.hpp"
+#include "MainController.hpp"
 
 #include <engine/platform/PlatformController.hpp>
 #include <spdlog/spdlog.h>

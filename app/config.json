@@ -1,11 +1,17 @@
 {
   "resources": {
+    "shaders": "shaders",
+    "textures": "textures",
+    "skyboxes": "skyboxes",
     "models": {
+      "garage": {
+        "path": "garage/GARAGE_FLOOR.obj"
+      }
     }
   },
   "window": {
     "height": 600,
-    "title": "Hello, window!",
+    "title": "Hello, windows!",
     "width": 800
   }
 }
