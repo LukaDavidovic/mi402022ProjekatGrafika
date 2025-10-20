@@ -26,8 +26,9 @@ void MainController::draw_garage() {
 
     engine::resources::Model *garage = resources->model("garage");
 
-    //shader
+    engine::resources::Model *mustang = resources->model("mustang");
 
+    //shader
 
     engine::resources::Shader *shader = resources->shader("garage");
     shader->use();
@@ -55,6 +56,25 @@ void MainController::draw_garage() {
     shader->set_mat4("model", model);
 
     garage->draw(shader);
+
+    shader->set_vec3("lightColor1", glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 mustangModel = glm::mat4(1.0f);
+    mustangModel = glm::translate(mustangModel, glm::vec3(-1.5f, 0.0f, -1.5f));
+    mustangModel = glm::scale(mustangModel, glm::vec3(0.04f));
+
+    shader->set_mat4("model", mustangModel);
+
+    mustang->draw(shader);
+
+    shader->set_vec3("lightColor1", glm::vec3(0.0f, 0.2f, 1.0f));
+    glm::mat4 mustangModel1 = glm::mat4(1.0f);
+    mustangModel1 = glm::translate(mustangModel1, glm::vec3(3.5f, 0.0f, -1.5f));
+    mustangModel1 = glm::scale(mustangModel1, glm::vec3(0.04f));
+
+    shader->set_mat4("model", mustangModel1);
+
+    mustang->draw(shader);
+
 
 }
 
