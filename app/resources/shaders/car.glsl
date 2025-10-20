@@ -1,7 +1,6 @@
 //#shader vertex
 
-// Transformiše poziciju i normale modela u svet koordinatni prostor, prosleđuje teksturne koordinate
-// Postavlja gl_Position za rasterizaciju koristeći projekciju i view matricu
+
 
 #version 330 core
 
@@ -27,9 +26,6 @@ void main()
 
 //#shader fragment
 
-// Izračunava boju piksela sa osnovnim osvetljenjem (ambient, diffuse, specular)
-// Koristi poziciju svetla, kameru i teksturu da bi dobio realističan izgled površine
-// Kombinuje teksturu i svetlosne komponente za finalnu boju piksela
 
 #version 330 core
 
@@ -39,8 +35,6 @@ out vec4 FragColor;
 in vec2 TexCoords;
 in vec3 Normal;
 in vec3 FragPos;
-
-uniform sampler2D texture_diffuse1;
 
 // pozicija svetla
 uniform vec3 lightPos1;
@@ -55,7 +49,7 @@ void main()
 
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 textureColor = texture(texture_diffuse1, TexCoords).rgb;
+
 
     //f-ja za jedno svetlo
 
@@ -80,7 +74,7 @@ void main()
     }
 
     //konacno
-    vec3 result = totalLight * textureColor;
+    vec3 result = totalLight;
     FragColor = vec4(result, 1.0);
 
 

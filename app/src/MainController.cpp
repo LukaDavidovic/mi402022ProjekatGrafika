@@ -31,7 +31,9 @@ void MainController::draw_garage() {
     //shader
 
     engine::resources::Shader *shader = resources->shader("garage");
+
     shader->use();
+
 
     shader->set_mat4("projection", graphics->projection_matrix());
 
@@ -44,7 +46,7 @@ void MainController::draw_garage() {
     shader->set_vec3("viewPos", camPos);
 
     // svetlo1
-    shader->set_vec3("lightPos1", glm::vec3(-2.0f, 4.0f, -5.0f));
+    shader->set_vec3("lightPos1", glm::vec3(0.0f, 3.0f, 0.0f));
     shader->set_vec3("lightColor1", glm::vec3(1.0f, 1.0f, 1.0f));// belo
 
 
@@ -57,24 +59,32 @@ void MainController::draw_garage() {
 
     garage->draw(shader);
 
-    shader->set_vec3("lightColor1", glm::vec3(1.0f, 0.0f, 0.0f));
+    engine::resources::Shader *shader1 = resources->shader("car");
+    shader1->use();
+
+    shader1->set_mat4("projection", graphics->projection_matrix());
+
+    glm::mat4 view1 = graphics->camera()->view_matrix();
+    shader1->set_mat4("view", view1);
+
+    glm::vec3 camPos1 = glm::vec3(glm::inverse(view)[3]);
+    shader1->set_vec3("viewPos", camPos1);
+
+    // PRVI AUTO
+    shader1->set_vec3("lightColor1", glm::vec3(0.6f, 0.0f, 0.0f));
     glm::mat4 mustangModel = glm::mat4(1.0f);
     mustangModel = glm::translate(mustangModel, glm::vec3(-1.5f, 0.0f, -1.5f));
     mustangModel = glm::scale(mustangModel, glm::vec3(0.04f));
+    shader1->set_mat4("model", mustangModel);
+    mustang->draw(shader1);
 
-    shader->set_mat4("model", mustangModel);
-
-    mustang->draw(shader);
-
-    shader->set_vec3("lightColor1", glm::vec3(0.0f, 0.2f, 1.0f));
+    // DRUGI AUTO
+    shader1->set_vec3("lightColor1", glm::vec3(0.0f, 0.2f, 1.0f));
     glm::mat4 mustangModel1 = glm::mat4(1.0f);
     mustangModel1 = glm::translate(mustangModel1, glm::vec3(3.5f, 0.0f, -1.5f));
     mustangModel1 = glm::scale(mustangModel1, glm::vec3(0.04f));
-
-    shader->set_mat4("model", mustangModel1);
-
-    mustang->draw(shader);
-
+    shader1->set_mat4("model", mustangModel1);
+    mustang->draw(shader1);
 
 }
 
