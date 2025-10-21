@@ -1,13 +1,24 @@
 
+#include <spdlog/spdlog.h>
 #include <MainController.hpp>
 
 #include <engine/graphics/GraphicsController.hpp>
 #include <engine/graphics/OpenGL.hpp>
 #include <engine/platform/PlatformController.hpp>
 #include <engine/resources/ResourcesController.hpp>
-#include <spdlog/spdlog.h>
+
+#include <chrono>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+bool g_action_triggered = false;
+bool g_red_car_removed = false;
+bool g_blue_car_removed = false;
+
+std::chrono::steady_clock::time_point g_action_time;
 
 namespace app {
+
 void MainController::initialize() { engine::graphics::OpenGL::enable_depth_testing(); }
 
 bool MainController::loop() {
@@ -19,6 +30,8 @@ bool MainController::loop() {
 void MainController::draw_garage() {
 
     //model
+
+    update_events();
 
     auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
 
@@ -70,22 +83,24 @@ void MainController::draw_garage() {
     glm::vec3 camPos1 = glm::vec3(glm::inverse(view)[3]);
     shader1->set_vec3("viewPos", camPos1);
 
-    // PRVI AUTO
-    shader1->set_vec3("lightColor1", glm::vec3(0.6f, 0.0f, 0.0f));
-    glm::mat4 mustangModel = glm::mat4(1.0f);
-    mustangModel = glm::translate(mustangModel, glm::vec3(-1.5f, 0.0f, -1.5f));
-    mustangModel = glm::scale(mustangModel, glm::vec3(0.04f));
-    shader1->set_mat4("model", mustangModel);
-    mustang->draw(shader1);
-
-    // DRUGI AUTO
-    shader1->set_vec3("lightColor1", glm::vec3(0.0f, 0.2f, 1.0f));
-    glm::mat4 mustangModel1 = glm::mat4(1.0f);
-    mustangModel1 = glm::translate(mustangModel1, glm::vec3(3.5f, 0.0f, -1.5f));
-    mustangModel1 = glm::scale(mustangModel1, glm::vec3(0.04f));
-    shader1->set_mat4("model", mustangModel1);
-    mustang->draw(shader1);
-
+    if (!g_red_car_removed) {
+        // PRVI AUTO
+        shader1->set_vec3("lightColor1", glm::vec3(0.6f, 0.0f, 0.0f));
+        glm::mat4 mustangModel = glm::mat4(1.0f);
+        mustangModel = glm::translate(mustangModel, glm::vec3(-1.5f, 0.0f, -1.5f));
+        mustangModel = glm::scale(mustangModel, glm::vec3(0.04f));
+        shader1->set_mat4("model", mustangModel);
+        mustang->draw(shader1);
+    }
+    if (!g_blue_car_removed) {
+        // DRUGI AUTO
+        shader1->set_vec3("lightColor1", glm::vec3(0.0f, 0.2f, 1.0f));
+        glm::mat4 mustangModel1 = glm::mat4(1.0f);
+        mustangModel1 = glm::translate(mustangModel1, glm::vec3(3.5f, 0.0f, -1.5f));
+        mustangModel1 = glm::scale(mustangModel1, glm::vec3(0.04f));
+        shader1->set_mat4("model", mustangModel1);
+        mustang->draw(shader1);
+    }
 }
 
 void MainController::update_camera() {
@@ -102,6 +117,7 @@ void MainController::update_camera() {
     if (platform->key(engine::platform::KeyId::KEY_SPACE).is_down()) { camera->move_camera(engine::graphics::Camera::Movement::UP, dt); }
     if (platform->key(engine::platform::KeyId::KEY_L).is_down()) { camera->rotate_camera(engine::graphics::Camera::Movement::LEFT * 4, 0); }   //POMERANJE UDESNO
     if (platform->key(engine::platform::KeyId::KEY_K).is_down()) { camera->rotate_camera(-(engine::graphics::Camera::Movement::LEFT * 4), 0); }//POMERANJE ULEVO
+    if (platform->key(engine::platform::KeyId::KEY_G).is_down()) { on_button_pressed(); }
 }
 
 void MainController::begin_draw() { engine::graphics::OpenGL::clear_buffers(); }
@@ -119,6 +135,48 @@ void MainController::draw() {
 void MainController::end_draw() {
     auto platform = engine::core::Controller::get<engine::platform::PlatformController>();
     platform->swap_buffers();
+}
+
+void MainController::trigger_event_a() {
+
+    g_red_car_removed = true;
+    spdlog::info("EVENT_A: Crveni auto nestaje sa scene!");
+
+}
+
+void MainController::trigger_event_b() {
+
+    g_blue_car_removed = true;
+
+    spdlog::info("EVENT_B: Plavi auto nestaje sa scene!");
+}
+
+void MainController::on_button_pressed() {
+
+    g_action_time = std::chrono::steady_clock::now();
+    g_action_triggered = true;
+    g_red_car_removed = false;
+    g_blue_car_removed = false;
+
+    spdlog::info("ACTION_X: Dugme pritisnutno - pokrenut je tajmer!");
+
+
+}
+
+void MainController::update_events() {
+
+    if (!g_action_triggered) return;
+
+    auto now = std::chrono::steady_clock::now();
+    float elapsed = std::chrono::duration<float>(now - g_action_time).count();
+
+    if (elapsed >= 5.0f && !g_red_car_removed) { trigger_event_a(); }
+
+    if (elapsed >= 10.0f && !g_blue_car_removed) {
+        trigger_event_b();
+        g_action_triggered = false;
+    }
+
 }
 
 void MainController::update() { update_camera(); }

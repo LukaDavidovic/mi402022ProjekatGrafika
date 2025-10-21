@@ -25,6 +25,16 @@ class MainController : public engine::core::Controller {
 
     void end_draw() override;
 
+    void trigger_event_a();
+
+    void trigger_event_b();
+
+    void on_button_pressed();
+
+    void update_events();
+
+
+
 public:
     std::string_view name() const override { return "app:MainController"; }
 };
