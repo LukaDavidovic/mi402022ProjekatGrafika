@@ -1,4 +1,5 @@
 
+
 #include <spdlog/spdlog.h>
 #include <MainController.hpp>
 
@@ -14,6 +15,7 @@
 bool g_action_triggered = false;
 bool g_red_car_removed = false;
 bool g_blue_car_removed = false;
+float g_light_intensity = 3.0f;
 
 std::chrono::steady_clock::time_point g_action_time;
 
@@ -43,25 +45,33 @@ void MainController::draw_garage() {
 
     //shader
 
+
     engine::resources::Shader *shader = resources->shader("garage");
 
     shader->use();
 
 
     shader->set_mat4("projection", graphics->projection_matrix());
-
-    // Uzimanje view matrice iz kamere i postavljanje u shader
     glm::mat4 view = graphics->camera()->view_matrix();
     shader->set_mat4("view", view);
 
-    // Izvlačenje pozicije kamere iz inverse view matrice i slanje u shader
     glm::vec3 camPos = glm::vec3(glm::inverse(view)[3]);
     shader->set_vec3("viewPos", camPos);
 
-    // svetlo1
-    shader->set_vec3("lightPos1", glm::vec3(0.0f, 3.0f, 0.0f));
+    shader->set_vec3("lightPos1", glm::vec3(1.5f, 3.0f, -6.0f));
     shader->set_vec3("lightColor1", glm::vec3(1.0f, 1.0f, 1.0f));// belo
 
+    shader->set_vec3("lightDir1", glm::vec3(2.0f, 4.0f, -1.0f));
+    shader->set_vec3("lightColor2", glm::vec3(1.0f, 1.0f, 1.0f));
+
+    float constantAttenuation = 1.0f;
+    float linearAttenuation = 0.09f;
+    float quadraticAttenuation = 0.032f;
+
+    shader->set_float("constantAttenuation", constantAttenuation);
+    shader->set_float("linearAttenuation", linearAttenuation);
+    shader->set_float("quadraticAttenuation", quadraticAttenuation);
+    shader->set_float("lightIntensity", g_light_intensity);
 
     // Kreiranje model matrice: pozicioniranje i skaliranje modela
     glm::mat4 model = glm::mat4(1.0f);
@@ -101,6 +111,7 @@ void MainController::draw_garage() {
         shader1->set_mat4("model", mustangModel1);
         mustang->draw(shader1);
     }
+
 }
 
 void MainController::update_camera() {
@@ -118,6 +129,8 @@ void MainController::update_camera() {
     if (platform->key(engine::platform::KeyId::KEY_L).is_down()) { camera->rotate_camera(engine::graphics::Camera::Movement::LEFT * 4, 0); }   //POMERANJE UDESNO
     if (platform->key(engine::platform::KeyId::KEY_K).is_down()) { camera->rotate_camera(-(engine::graphics::Camera::Movement::LEFT * 4), 0); }//POMERANJE ULEVO
     if (platform->key(engine::platform::KeyId::KEY_G).is_down()) { on_button_pressed(); }
+    if (platform->key(engine::platform::KeyId::KEY_1).is_down()) { amplify_light(); }
+    if (platform->key(engine::platform::KeyId::KEY_2).is_down()) { lower_light(); }
 }
 
 void MainController::begin_draw() { engine::graphics::OpenGL::clear_buffers(); }
@@ -158,6 +171,7 @@ void MainController::on_button_pressed() {
     g_red_car_removed = false;
     g_blue_car_removed = false;
 
+
     spdlog::info("ACTION_X: Dugme pritisnutno - pokrenut je tajmer!");
 
 
@@ -177,7 +191,12 @@ void MainController::update_events() {
         g_action_triggered = false;
     }
 
+
 }
+
+void MainController::lower_light() { if (g_light_intensity >= 0.1f) g_light_intensity -= 0.1f; }
+
+void MainController::amplify_light() { if (g_light_intensity < 10.0f) g_light_intensity += 0.1f; }
 
 void MainController::update() { update_camera(); }
 }

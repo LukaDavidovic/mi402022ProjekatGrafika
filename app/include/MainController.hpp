@@ -33,7 +33,9 @@ class MainController : public engine::core::Controller {
 
     void update_events();
 
+    void lower_light();
 
+    void amplify_light();
 
 public:
     std::string_view name() const override { return "app:MainController"; }
