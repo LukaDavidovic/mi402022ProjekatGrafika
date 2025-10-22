@@ -49,7 +49,6 @@ void main()
 out vec4 FragColor;
 
 in vec2 TexCoords;
-//in vec3 Normal;
 in vec3 FragPos;
 in mat3 TBN;
 
@@ -60,9 +59,7 @@ uniform sampler2D metalnessMap;
 uniform sampler2D normalMap;
 uniform sampler2D roughnessMap;
 
-
-// pozicija svetla
-
+// svetlo
 uniform vec3 lightPos1;
 uniform vec3 lightDir1;
 uniform vec3 viewPos;
@@ -70,8 +67,7 @@ uniform vec3 viewPos;
 uniform vec3 lightColor1;
 uniform vec3 lightColor2;
 
-uniform float lightIntensity;//ovo svetlo ce moci da se menja
-
+uniform float lightIntensity;
 uniform float constantAttenuation;
 uniform float linearAttenuation;
 uniform float quadraticAttenuation;
@@ -79,25 +75,30 @@ uniform float quadraticAttenuation;
 
 void main()
 {
+    vec2 uv = TexCoords;
 
-    vec2 correctedTexCoords = vec2(TexCoords.x, 1.0 - TexCoords.y);
+    uv.y = 1.0 - uv.y;
 
-    vec3 albedo = texture(albedoMap, correctedTexCoords).rgb;
+    // učitavanje svih tekstura
+    vec3 albedo = texture(albedoMap, uv).rgb;
+    float ao = texture(aoMap, uv).r;
+    float bump = texture(bumpMap, uv).r;
+    float metalness = texture(metalnessMap, uv).r;
+    float roughness = texture(roughnessMap, uv).r;
 
-    float ao = texture(aoMap, correctedTexCoords).r;
-    float metalness = texture(metalnessMap, correctedTexCoords).r;
-    float roughness = texture(roughnessMap, correctedTexCoords).r;
-
-    vec3 normal = texture(normalMap, correctedTexCoords).rgb;
+    vec3 normal = texture(normalMap, uv).rgb;
     normal = normalize(normal * 2.0 - 1.0);
     normal = normalize(TBN * normal);
 
+    // vektori
     vec3 viewDir = normalize(viewPos - FragPos);
-    vec3 totalLight = vec3(0.0);
-    float ambientStrength = 0.3;
-    float specularStrength = 0.3;
-    // svetlo1 - point light(lightcolor1,lightPos1)
+    vec3 totalLight = vec3(0.3);
 
+    // parametri osvetljenja
+    float ambientStrength = 0.4;   // malo jače
+    float specularStrength = 0.1;  // sjaj naglašeniji
+
+    // POINT LIGHT
     {
         vec3 lightDir = normalize(lightPos1 - FragPos);
         float distance = length(lightPos1 - FragPos);
@@ -107,15 +108,14 @@ void main()
         vec3 reflectDir = reflect(-lightDir, normal);
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 
-
-
         vec3 ambient = ambientStrength * lightColor1;
         vec3 diffuse = diff * lightColor1;
         vec3 specular = specularStrength * spec * lightColor1;
 
         totalLight += (ambient + diffuse + specular) * lightIntensity * attenuation;
     }
-    // svetlo 2 direkciono
+
+    // DIREKCIONO SVETLO – pojačano
     {
         vec3 lightDir = normalize(-lightDir1);
         float diff = max(dot(normal, lightDir), 0.0);
@@ -123,20 +123,13 @@ void main()
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 
         vec3 ambient = ambientStrength * lightColor2;
-        vec3 diffuse = diff * lightColor2;
-        vec3 specular = specularStrength * spec * lightColor2;
+        vec3 diffuse = diff * lightColor2;      // ×2 jače osvetljenje
+        vec3 specular = specularStrength * spec * lightColor2;// sjajnije refleksije
 
         totalLight += (ambient + diffuse + specular);
     }
 
-
-
-    //konacno
-    vec3 result = totalLight * albedo;
-
-
-
+    // konačna boja
+    vec3 result = totalLight * albedo * ao * bump * roughness;
     FragColor = vec4(result, 1.0);
-
-
 }
