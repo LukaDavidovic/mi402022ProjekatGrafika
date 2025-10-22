@@ -9,9 +9,6 @@
       },
       "mustang": {
         "path": "mustang/mustang.obj"
-      },
-      "star": {
-        "path": "star/star.obj"
       }
     }
   },
