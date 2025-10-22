@@ -80,12 +80,15 @@ uniform float quadraticAttenuation;
 void main()
 {
 
-    vec3 albedo = texture(albedoMap, TexCoords).rgb;
-    float ao = texture(aoMap, TexCoords).r;
-    float metalness = texture(metalnessMap, TexCoords).r;
-    float roughness = texture(roughnessMap, TexCoords).r;
+    vec2 correctedTexCoords = vec2(TexCoords.x, 1.0 - TexCoords.y);
 
-    vec3 normal = texture(normalMap, TexCoords).rgb;
+    vec3 albedo = texture(albedoMap, correctedTexCoords).rgb;
+
+    float ao = texture(aoMap, correctedTexCoords).r;
+    float metalness = texture(metalnessMap, correctedTexCoords).r;
+    float roughness = texture(roughnessMap, correctedTexCoords).r;
+
+    vec3 normal = texture(normalMap, correctedTexCoords).rgb;
     normal = normalize(normal * 2.0 - 1.0);
     normal = normalize(TBN * normal);
 
@@ -126,8 +129,13 @@ void main()
         totalLight += (ambient + diffuse + specular);
     }
 
+
+
     //konacno
     vec3 result = totalLight * albedo;
+
+
+
     FragColor = vec4(result, 1.0);
 
 
