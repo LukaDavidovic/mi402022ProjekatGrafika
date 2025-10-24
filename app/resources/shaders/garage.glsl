@@ -1,8 +1,5 @@
 //#shader vertex
 
-// Transformiše poziciju i normale modela u svet koordinatni prostor, prosleđuje teksturne koordinate
-// Postavlja gl_Position za rasterizaciju koristeći projekciju i view matricu
-
 #version 330 core
 
 layout (location = 0) in vec3 aPos;
@@ -12,7 +9,6 @@ layout (location = 3) in vec3 aTangent;
 layout (location = 4) in vec3 aBitangent;
 
 out vec2 TexCoords;
-//out vec3 Normal;
 out vec3 FragPos;
 out mat3 TBN;
 
@@ -23,11 +19,9 @@ uniform mat4 projection;
 void main()
 {
     FragPos = vec3(model * vec4(aPos, 1.0));
-    //Normal = mat3(transpose(inverse(model))) * aNormal; // ispravno transformisanje normale
 
     TexCoords = aTexCoords;
 
-    //TBN matrica za normal mapu
 
     vec3 T = normalize(mat3(model) * aTangent);
     vec3 B = normalize(mat3(model) * aBitangent);
@@ -40,9 +34,6 @@ void main()
 
 //#shader fragment
 
-// Izračunava boju piksela sa osnovnim osvetljenjem (ambient, diffuse, specular)
-// Koristi poziciju svetla, kameru i teksturu da bi dobio realističan izgled površine
-// Kombinuje teksturu i svetlosne komponente za finalnu boju piksela
 
 #version 330 core
 
@@ -59,7 +50,6 @@ uniform sampler2D metalnessMap;
 uniform sampler2D normalMap;
 uniform sampler2D roughnessMap;
 
-// svetlo
 uniform vec3 lightPos1;
 uniform vec3 lightDir1;
 uniform vec3 viewPos;
@@ -79,24 +69,21 @@ void main()
 
     uv.y = 1.0 - uv.y;
 
-    // učitavanje svih tekstura
     vec3 albedo = texture(albedoMap, uv).rgb;
     float ao = texture(aoMap, uv).r;
     float bump = texture(bumpMap, uv).r;
-    float metalness = texture(metalnessMap, uv).r;
     float roughness = texture(roughnessMap, uv).r;
 
     vec3 normal = texture(normalMap, uv).rgb;
     normal = normalize(normal * 2.0 - 1.0);
     normal = normalize(TBN * normal);
 
-    // vektori
+
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 totalLight = vec3(0.3);
 
-    // parametri osvetljenja
-    float ambientStrength = 0.4;   // malo jače
-    float specularStrength = 0.1;  // sjaj naglašeniji
+    float ambientStrength = 0.5;
+    float specularStrength = 0.3;
 
     // POINT LIGHT
     {
@@ -115,7 +102,7 @@ void main()
         totalLight += (ambient + diffuse + specular) * lightIntensity * attenuation;
     }
 
-    // DIREKCIONO SVETLO – pojačano
+    // DIREKCIONO SVETLO
     {
         vec3 lightDir = normalize(-lightDir1);
         float diff = max(dot(normal, lightDir), 0.0);
@@ -123,13 +110,13 @@ void main()
         float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
 
         vec3 ambient = ambientStrength * lightColor2;
-        vec3 diffuse = diff * lightColor2;      // ×2 jače osvetljenje
-        vec3 specular = specularStrength * spec * lightColor2;// sjajnije refleksije
+        vec3 diffuse = diff * lightColor2;
+        vec3 specular = specularStrength * spec * lightColor2;
 
         totalLight += (ambient + diffuse + specular);
     }
 
-    // konačna boja
     vec3 result = totalLight * albedo * ao * bump * roughness;
+
     FragColor = vec4(result, 1.0);
 }

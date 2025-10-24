@@ -15,8 +15,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 bool g_action_triggered = false;
-bool g_red_car_removed = false;
-bool g_blue_car_removed = false;
+bool g_left_car_removed = false;
+bool g_right_car_removed = false;
 float g_light_intensity = 3.0f;
 
 std::chrono::steady_clock::time_point g_action_time;
@@ -33,8 +33,6 @@ bool MainController::loop() {
 
 void MainController::draw_garage() {
 
-    //model
-
     update_events();
 
     auto resources = engine::core::Controller::get<engine::resources::ResourcesController>();
@@ -43,7 +41,6 @@ void MainController::draw_garage() {
 
     engine::resources::Model *garage = resources->model("garage");
 
-    engine::resources::Model *mustang = resources->model("mustang");
 
     //shader
 
@@ -52,42 +49,35 @@ void MainController::draw_garage() {
     engine::resources::Texture *albedo = resources->texture("GARAGE_FLOOR_albedo");
     engine::resources::Texture *ao = resources->texture("GARAGE_FLOOR_ao");
     engine::resources::Texture *bump = resources->texture("GARAGE_FLOOR_bump");
-    engine::resources::Texture *metalness = resources->texture("GARAGE_FLOOR_metalness");
     engine::resources::Texture *normal = resources->texture("GARAGE_FLOOR_normal");
     engine::resources::Texture *roughness = resources->texture("GARAGE_FLOOR_roughness");
 
     shader->use();
 
-    if (albedo) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, albedo->id());
-        shader->set_int("albedoMap", 0);
-    }
-    if (ao) {
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, ao->id());
-        shader->set_int("aoMap", 1);
-    }
-    if (bump) {
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, bump->id());
-        shader->set_int("bumpMap", 2);
-    }
-    if (metalness) {
-        glActiveTexture(GL_TEXTURE3);
-        glBindTexture(GL_TEXTURE_2D, metalness->id());
-        shader->set_int("metalnessMap", 3);
-    }
-    if (normal) {
-        glActiveTexture(GL_TEXTURE4);
-        glBindTexture(GL_TEXTURE_2D, normal->id());
-        shader->set_int("normalMap", 4);
-    }
-    if (roughness) {
-        glActiveTexture(GL_TEXTURE5);
-        glBindTexture(GL_TEXTURE_2D, roughness->id());
-        shader->set_int("roughnessMap", 5);
-    }
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, albedo->id());
+    shader->set_int("albedoMap", 0);
+
+
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, ao->id());
+    shader->set_int("aoMap", 1);
+
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, bump->id());
+    shader->set_int("bumpMap", 2);
+
+
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, normal->id());
+    shader->set_int("normalMap", 4);
+
+
+    glActiveTexture(GL_TEXTURE5);
+    glBindTexture(GL_TEXTURE_2D, roughness->id());
+    shader->set_int("roughnessMap", 5);
+
 
     shader->set_mat4("projection", graphics->projection_matrix());
     glm::mat4 view = graphics->camera()->view_matrix();
@@ -111,7 +101,6 @@ void MainController::draw_garage() {
     shader->set_float("quadraticAttenuation", quadraticAttenuation);
     shader->set_float("lightIntensity", g_light_intensity);
 
-    // Kreiranje model matrice: pozicioniranje i skaliranje modela
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, -5.0f));
     model = glm::scale(model, glm::vec3(0.02f));
@@ -120,8 +109,16 @@ void MainController::draw_garage() {
 
     garage->draw(shader);
 
+    engine::resources::Model *mustang = resources->model("mustang");
     engine::resources::Shader *shader1 = resources->shader("car");
     shader1->use();
+
+    engine::resources::Texture *carTexture = resources->texture("texturecar");
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, carTexture->id());
+
+    shader1->set_int("carTexture", 0);
 
     shader1->set_mat4("projection", graphics->projection_matrix());
 
@@ -131,22 +128,22 @@ void MainController::draw_garage() {
     glm::vec3 camPos1 = glm::vec3(glm::inverse(view)[3]);
     shader1->set_vec3("viewPos", camPos1);
 
-    if (!g_red_car_removed) {
-        // PRVI AUTO
-        shader1->set_vec3("lightColor1", glm::vec3(0.6f, 0.0f, 0.0f));
-        glm::mat4 mustangModel = glm::mat4(1.0f);
-        mustangModel = glm::translate(mustangModel, glm::vec3(-1.5f, 0.0f, -1.5f));
-        mustangModel = glm::scale(mustangModel, glm::vec3(0.04f));
-        shader1->set_mat4("model", mustangModel);
+    if (!g_left_car_removed) {
+        glm::mat4 Model = glm::mat4(1.0f);
+        Model = glm::translate(Model, glm::vec3(-1.0f, 0.0f, -2.8f));
+        Model = glm::rotate(Model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        Model = glm::scale(Model, glm::vec3(4.0f));
+        shader1->set_mat4("model", Model);
+
         mustang->draw(shader1);
     }
-    if (!g_blue_car_removed) {
+    if (!g_right_car_removed) {
         // DRUGI AUTO
-        shader1->set_vec3("lightColor1", glm::vec3(0.0f, 0.2f, 1.0f));
-        glm::mat4 mustangModel1 = glm::mat4(1.0f);
-        mustangModel1 = glm::translate(mustangModel1, glm::vec3(3.5f, 0.0f, -1.5f));
-        mustangModel1 = glm::scale(mustangModel1, glm::vec3(0.04f));
-        shader1->set_mat4("model", mustangModel1);
+        glm::mat4 Model1 = glm::mat4(1.0f);
+        Model1 = glm::translate(Model1, glm::vec3(3.0f, 0.0f, -2.8f));
+        Model1 = glm::rotate(Model1, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        Model1 = glm::scale(Model1, glm::vec3(4.0f));
+        shader1->set_mat4("model", Model1);
         mustang->draw(shader1);
     }
 
@@ -190,24 +187,24 @@ void MainController::end_draw() {
 
 void MainController::trigger_event_a() {
 
-    g_red_car_removed = true;
-    spdlog::info("EVENT_A: Crveni auto nestaje sa scene!");
+    g_left_car_removed = true;
+    spdlog::info("EVENT_A: Prvi auto nestaje sa scene!");
 
 }
 
 void MainController::trigger_event_b() {
 
-    g_blue_car_removed = true;
+    g_right_car_removed = true;
 
-    spdlog::info("EVENT_B: Plavi auto nestaje sa scene!");
+    spdlog::info("EVENT_B: Drugi auto nestaje sa scene!");
 }
 
 void MainController::on_button_pressed() {
 
     g_action_time = std::chrono::steady_clock::now();
     g_action_triggered = true;
-    g_red_car_removed = false;
-    g_blue_car_removed = false;
+    g_left_car_removed = false;
+    g_right_car_removed = false;
 
 
     spdlog::info("ACTION_X: Dugme pritisnutno - pokrenut je tajmer!");
@@ -222,9 +219,9 @@ void MainController::update_events() {
     auto now = std::chrono::steady_clock::now();
     float elapsed = std::chrono::duration<float>(now - g_action_time).count();
 
-    if (elapsed >= 5.0f && !g_red_car_removed) { trigger_event_a(); }
+    if (elapsed >= 5.0f && !g_left_car_removed) { trigger_event_a(); }
 
-    if (elapsed >= 10.0f && !g_blue_car_removed) {
+    if (elapsed >= 10.0f && !g_right_car_removed) {
         trigger_event_b();
         g_action_triggered = false;
     }
@@ -239,4 +236,3 @@ void MainController::amplify_light() { if (g_light_intensity < 10.0f) g_light_in
 void MainController::update() { update_camera(); }
 }
 
-// app
