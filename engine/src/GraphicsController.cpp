@@ -7,7 +7,9 @@
 #include <engine/graphics/GraphicsController.hpp>
 #include <engine/graphics/OpenGL.hpp>
 #include <engine/platform/PlatformController.hpp>
+#include <engine/resources/Model.hpp>
 #include <engine/resources/Skybox.hpp>
+#include <engine/resources/Texture.hpp>
 
 namespace engine::graphics {
 
@@ -64,9 +66,7 @@ void GraphicsPlatformEventObserver::on_window_resize(int width, int height) {
               .Top = static_cast<float>(height);
 }
 
-std::string_view GraphicsController::name() const {
-    return "GraphicsController";
-}
+std::string_view GraphicsController::name() const { return "GraphicsController"; }
 
 void GraphicsController::begin_gui() {
     ImGui_ImplOpenGL3_NewFrame();
@@ -90,7 +90,28 @@ void GraphicsController::draw_skybox(const resources::Shader *shader, const reso
     CHECKED_GL_CALL(glBindTexture, GL_TEXTURE_CUBE_MAP, skybox->texture());
     CHECKED_GL_CALL(glDrawArrays, GL_TRIANGLES, 0, 36);
     CHECKED_GL_CALL(glBindVertexArray, 0);
-    CHECKED_GL_CALL(glDepthFunc, GL_LESS); // set depth function back to default
+    CHECKED_GL_CALL(glDepthFunc, GL_LESS);// set depth function back to default
     CHECKED_GL_CALL(glBindTexture, GL_TEXTURE_CUBE_MAP, 0);
+}
+
+void GraphicsController::draw_model(const resources::Model *model, const resources::Shader *shader, const glm::mat4 &modelMatrix, const std::unordered_map<std::string, resources::Texture *> &textures) {
+
+    shader->use();
+    shader->set_mat4("model", modelMatrix);
+    shader->set_mat4("view", m_camera.view_matrix());
+    shader->set_mat4("projection", projection_matrix<>());
+
+    glm::vec3 camPos = glm::vec3(glm::inverse(m_camera.view_matrix())[3]);
+    shader->set_vec3("viewPos", camPos);
+
+    int tex_unit = 0;
+
+    for (auto &[uniform,texture]: textures) {
+        CHECKED_GL_CALL(glActiveTexture, GL_TEXTURE0 + tex_unit);
+        CHECKED_GL_CALL(glBindTexture, GL_TEXTURE_2D, texture->id());
+        shader->set_int(uniform, tex_unit);
+        tex_unit++;
+    }
+
 }
 }

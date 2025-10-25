@@ -1,7 +1,3 @@
-
-
-#include "../../engine/libs/glad/include/glad/glad.h"
-
 #include <spdlog/spdlog.h>
 #include <MainController.hpp>
 
@@ -17,7 +13,7 @@
 bool g_action_triggered = false;
 bool g_left_car_removed = false;
 bool g_right_car_removed = false;
-float g_light_intensity = 3.0f;
+float g_light_intensity = 5.0f;
 
 std::chrono::steady_clock::time_point g_action_time;
 
@@ -46,38 +42,17 @@ void MainController::draw_garage() {
 
     engine::resources::Shader *shader = resources->shader("garage");
 
-    engine::resources::Texture *albedo = resources->texture("GARAGE_FLOOR_albedo");
-    engine::resources::Texture *ao = resources->texture("GARAGE_FLOOR_ao");
-    engine::resources::Texture *bump = resources->texture("GARAGE_FLOOR_bump");
-    engine::resources::Texture *normal = resources->texture("GARAGE_FLOOR_normal");
-    engine::resources::Texture *roughness = resources->texture("GARAGE_FLOOR_roughness");
-
     shader->use();
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, albedo->id());
-    shader->set_int("albedoMap", 0);
+    std::unordered_map<std::string, engine::resources::Texture *> garage_textures = {
 
+            {"albedoMap", resources->texture("GARAGE_FLOOR_albedo")},
+            {"aoMap", resources->texture("GARAGE_FLOOR_ao")},
+            {"bumpMap", resources->texture("GARAGE_FLOOR_bump")},
+            {"normalMap", resources->texture("GARAGE_FLOOR_normal")},
+            {"roughnessMap", resources->texture("GARAGE_FLOOR_roughness")}
 
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, ao->id());
-    shader->set_int("aoMap", 1);
-
-
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, bump->id());
-    shader->set_int("bumpMap", 2);
-
-
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, normal->id());
-    shader->set_int("normalMap", 4);
-
-
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, roughness->id());
-    shader->set_int("roughnessMap", 5);
-
+    };
 
     shader->set_mat4("projection", graphics->projection_matrix());
     glm::mat4 view = graphics->camera()->view_matrix();
@@ -86,10 +61,10 @@ void MainController::draw_garage() {
     glm::vec3 camPos = glm::vec3(glm::inverse(view)[3]);
     shader->set_vec3("viewPos", camPos);
 
-    shader->set_vec3("lightPos1", glm::vec3(1.5f, 3.0f, -6.0f));
+    shader->set_vec3("lightPos1", glm::vec3(2.5f, -2.5f, -5.0f));
     shader->set_vec3("lightColor1", glm::vec3(1.0f, 1.0f, 1.0f));// belo
 
-    shader->set_vec3("lightDir1", glm::vec3(2.0f, 4.0f, -1.0f));
+    shader->set_vec3("lightDir1", glm::vec3(0.0f, 0.0f, -5.0f));
     shader->set_vec3("lightColor2", glm::vec3(1.0f, 1.0f, 1.0f));
 
     float constantAttenuation = 1.0f;
@@ -105,9 +80,10 @@ void MainController::draw_garage() {
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, -5.0f));
     model = glm::scale(model, glm::vec3(0.02f));
 
-    shader->set_mat4("model", model);
+    graphics->draw_model(garage, shader, model, garage_textures);
 
     garage->draw(shader);
+
 
     engine::resources::Model *mustang = resources->model("mustang");
     engine::resources::Shader *shader1 = resources->shader("car");
@@ -115,16 +91,14 @@ void MainController::draw_garage() {
 
     engine::resources::Texture *carTexture = resources->texture("texturecar");
 
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, carTexture->id());
+    std::unordered_map<std::string, engine::resources::Texture *> car_textures = {
 
-    shader1->set_int("carTexture", 0);
+            {"carTexture", resources->texture("texturecar")}
+    };
 
     shader1->set_mat4("projection", graphics->projection_matrix());
-
     glm::mat4 view1 = graphics->camera()->view_matrix();
     shader1->set_mat4("view", view1);
-
     glm::vec3 camPos1 = glm::vec3(glm::inverse(view)[3]);
     shader1->set_vec3("viewPos", camPos1);
 
@@ -133,7 +107,8 @@ void MainController::draw_garage() {
         Model = glm::translate(Model, glm::vec3(-1.0f, 0.0f, -2.8f));
         Model = glm::rotate(Model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         Model = glm::scale(Model, glm::vec3(4.0f));
-        shader1->set_mat4("model", Model);
+
+        graphics->draw_model(mustang, shader1, Model, car_textures);
 
         mustang->draw(shader1);
     }
@@ -143,9 +118,12 @@ void MainController::draw_garage() {
         Model1 = glm::translate(Model1, glm::vec3(3.0f, 0.0f, -2.8f));
         Model1 = glm::rotate(Model1, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         Model1 = glm::scale(Model1, glm::vec3(4.0f));
-        shader1->set_mat4("model", Model1);
+
+        graphics->draw_model(mustang, shader1, Model1, car_textures);
+
         mustang->draw(shader1);
     }
+
 
 }
 

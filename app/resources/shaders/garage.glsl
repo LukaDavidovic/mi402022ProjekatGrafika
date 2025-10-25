@@ -82,8 +82,8 @@ void main()
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 totalLight = vec3(0.3);
 
-    float ambientStrength = 0.5;
-    float specularStrength = 0.3;
+    float ambientStrength = 0.7;
+    float specularStrength = 0.7;
 
     // POINT LIGHT
     {
