@@ -5,6 +5,7 @@
 #ifndef MAINCONTROLLER_HPP
 #define MAINCONTROLLER_HPP
 #include <engine/core/Controller.hpp>
+#include <chrono>
 
 namespace app {
 
@@ -36,6 +37,13 @@ class MainController : public engine::core::Controller {
     void lower_light();
 
     void amplify_light();
+
+private:
+    bool m_action_triggered = false;
+    bool m_left_car_removed = false;
+    bool m_right_car_removed = false;
+    float m_light_intensity = 5.0f;
+    std::chrono::steady_clock::time_point m_action_time;
 
 public:
     std::string_view name() const override { return "app:MainController"; }

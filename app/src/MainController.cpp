@@ -6,16 +6,15 @@
 #include <engine/platform/PlatformController.hpp>
 #include <engine/resources/ResourcesController.hpp>
 
-#include <chrono>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-bool g_action_triggered = false;
-bool g_left_car_removed = false;
-bool g_right_car_removed = false;
-float g_light_intensity = 5.0f;
+//bool g_action_triggered = false;
+//bool g_left_car_removed = false;
+//bool g_right_car_removed = false;
+//Sfloat g_light_intensity = 5.0f;
 
-std::chrono::steady_clock::time_point g_action_time;
+//std::chrono::steady_clock::time_point g_action_time;
 
 namespace app {
 
@@ -74,7 +73,7 @@ void MainController::draw_garage() {
     shader->set_float("constantAttenuation", constantAttenuation);
     shader->set_float("linearAttenuation", linearAttenuation);
     shader->set_float("quadraticAttenuation", quadraticAttenuation);
-    shader->set_float("lightIntensity", g_light_intensity);
+    shader->set_float("lightIntensity", m_light_intensity);
 
     glm::mat4 model = glm::mat4(1.0f);
     model = glm::translate(model, glm::vec3(0.0f, 0.0f, -5.0f));
@@ -102,7 +101,7 @@ void MainController::draw_garage() {
     glm::vec3 camPos1 = glm::vec3(glm::inverse(view)[3]);
     shader1->set_vec3("viewPos", camPos1);
 
-    if (!g_left_car_removed) {
+    if (!m_left_car_removed) {
         glm::mat4 Model = glm::mat4(1.0f);
         Model = glm::translate(Model, glm::vec3(-1.0f, 0.0f, -2.8f));
         Model = glm::rotate(Model, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -112,7 +111,7 @@ void MainController::draw_garage() {
 
         mustang->draw(shader1);
     }
-    if (!g_right_car_removed) {
+    if (!m_right_car_removed) {
         // DRUGI AUTO
         glm::mat4 Model1 = glm::mat4(1.0f);
         Model1 = glm::translate(Model1, glm::vec3(3.0f, 0.0f, -2.8f));
@@ -165,24 +164,24 @@ void MainController::end_draw() {
 
 void MainController::trigger_event_a() {
 
-    g_left_car_removed = true;
+    m_left_car_removed = true;
     spdlog::info("EVENT_A: Prvi auto nestaje sa scene!");
 
 }
 
 void MainController::trigger_event_b() {
 
-    g_right_car_removed = true;
+    m_right_car_removed = true;
 
     spdlog::info("EVENT_B: Drugi auto nestaje sa scene!");
 }
 
 void MainController::on_button_pressed() {
 
-    g_action_time = std::chrono::steady_clock::now();
-    g_action_triggered = true;
-    g_left_car_removed = false;
-    g_right_car_removed = false;
+    m_action_time = std::chrono::steady_clock::now();
+    m_action_triggered = true;
+    m_left_car_removed = false;
+    m_right_car_removed = false;
 
 
     spdlog::info("ACTION_X: Dugme pritisnutno - pokrenut je tajmer!");
@@ -192,24 +191,24 @@ void MainController::on_button_pressed() {
 
 void MainController::update_events() {
 
-    if (!g_action_triggered) return;
+    if (!m_action_triggered) return;
 
     auto now = std::chrono::steady_clock::now();
-    float elapsed = std::chrono::duration<float>(now - g_action_time).count();
+    float elapsed = std::chrono::duration<float>(now - m_action_time).count();
 
-    if (elapsed >= 5.0f && !g_left_car_removed) { trigger_event_a(); }
+    if (elapsed >= 5.0f && !m_left_car_removed) { trigger_event_a(); }
 
-    if (elapsed >= 10.0f && !g_right_car_removed) {
+    if (elapsed >= 10.0f && !m_right_car_removed) {
         trigger_event_b();
-        g_action_triggered = false;
+        m_action_triggered = false;
     }
 
 
 }
 
-void MainController::lower_light() { if (g_light_intensity >= 0.1f) g_light_intensity -= 0.1f; }
+void MainController::lower_light() { if (m_light_intensity >= 0.1f) m_light_intensity -= 0.1f; }
 
-void MainController::amplify_light() { if (g_light_intensity < 10.0f) g_light_intensity += 0.1f; }
+void MainController::amplify_light() { if (m_light_intensity < 10.0f) m_light_intensity += 0.1f; }
 
 void MainController::update() { update_camera(); }
 }
