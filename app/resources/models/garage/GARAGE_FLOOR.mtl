@@ -1,0 +1,12 @@
+newmtl Mat.1
+Ns 100.000
+d 1.00000
+illum 2
+Kd 1.00000 1.00000 1.00000
+Ka 0.00000 0.00000 0.00000
+Ks 1.00000 1.00000 1.00000
+Ke 0.00000e+0 0.00000e+0 0.00000e+0
+map_Kd GARAGE_FLOOR_albedo.png
+map_Ks GARAGE_FLOOR_roughness.png
+bump GARAGE_FLOOR_bump.png
+map_bump GARAGE_FLOOR_normal.png
